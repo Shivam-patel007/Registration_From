@@ -191,9 +191,9 @@ function buildAssessmentFormHtml(data) {
       <div style="margin:10px 0;">
         <div style="font-weight:bold;font-size:13px;margin-bottom:6px;color:#000;text-align:center;">FIRST ASSESSMENT</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
-          <div style="border:1px solid #000;padding:8px;text-align:center;min-height:60px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;color:#000;">Maths Ability</div>
-          <div style="border:1px solid #000;padding:8px;text-align:center;min-height:60px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;color:#000;">English Writing Skills</div>
-          <div style="border:1px solid #000;padding:8px;text-align:center;min-height:60px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11px;color:#000;">Spoken Skills</div>
+          <div style="border:1px solid #000;padding:2px;text-align:center;min-height:60px;display:flex;align-items:flex-start;justify-content:center;font-weight:bold;font-size:11px;color:#000;">Maths Ability</div>
+          <div style="border:1px solid #000;padding:2px;text-align:center;min-height:60px;display:flex;align-items:flex-start;justify-content:center;font-weight:bold;font-size:11px;color:#000;">English Writing Skills</div>
+          <div style="border:1px solid #000;padding:2px;text-align:center;min-height:60px;display:flex;align-items:flex-start;justify-content:center;font-weight:bold;font-size:11px;color:#000;">Spoken Skills</div>
         </div>
       </div>
 
@@ -281,20 +281,16 @@ async function generateAssessmentPdf(data, fileName) {
     const imgData = canvas.toDataURL('image/png');
     const pageWidth = 210;
     const pageHeight = 297;
-    const imgHeight = (canvas.height * pageWidth) / canvas.width;
-    let heightLeft = imgHeight;
-    let position = 0;
+    const margin = 10;
+    const availableWidth = pageWidth - margin * 2;
+    const availableHeight = pageHeight - margin * 2;
+    const scale = Math.min(availableWidth / canvas.width, availableHeight / canvas.height);
+    const imgWidth = canvas.width * scale;
+    const imgHeight = canvas.height * scale;
+    const x = (pageWidth - imgWidth) / 2;
+    const y = (pageHeight - imgHeight) / 2;
 
-    pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
-      heightLeft -= pageHeight;
-    }
-
+    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
     pdf.save(fileName);
   } finally {
     document.body.removeChild(wrapper);
