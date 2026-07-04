@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sir Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-shell admin-shell">
+    <header class="form-header admin-header">
+      <p class="eyebrow">Administration Portal</p>
+      <h1>Sir Dashboard</h1>
+      <p class="subtitle">Manage student registrations and download assessment PDFs.</p>
+    </header>
+
+    <section id="loginCard" class="login-card">
+      <div class="login-card-top">
+        <div>
+          <h2>Access Dashboard</h2>
+          <p>Sign in with your admin password to view all student registrations.</p>
+        </div>
+        <span class="badge-pill">Restricted</span>
+      </div>
+
+      <form id="adminLoginForm">
+        <label>
+          Password
+          <input id="sirPassword" type="password" required placeholder="Enter admin password" autocomplete="current-password" />
+        </label>
+        <div class="login-actions">
+          <button type="submit">Open Dashboard</button>
+          <button type="button" id="showChangePasswordButton" class="secondary">Change Password</button>
+        </div>
+      </form>
+
+      <div id="passwordChangePanel" class="password-change-panel hidden">
+        <form id="changePasswordForm" class="password-change-form">
+          <label>
+            Current Password
+            <input id="currentPassword" type="password" required placeholder="Enter current password" />
+          </label>
+          <label>
+            New Password
+            <input id="newPassword" type="password" required placeholder="Enter new password" />
+          </label>
+          <label>
+            Confirm New Password
+            <input id="confirmPassword" type="password" required placeholder="Confirm new password" />
+          </label>
+          <button type="submit">Update Password</button>
+        </form>
+        <p id="changePasswordStatus" class="status-message"></p>
+      </div>
+
+      <p id="loginStatus" class="status-message"></p>
+    </section>
+
+    <section id="dashboard" class="dashboard hidden">
+      <div class="dashboard-head">
+        <div>
+          <h2>Student Registrations</h2>
+          <p>Each student has an ID, password, and downloadable assessment PDF.</p>
+        </div>
+        <button type="button" id="logoutButton" class="secondary">Logout</button>
+      </div>
+
+      <div id="registrationsList" class="registration-list"></div>
+    </section>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="db.js"></script>
+  <script src="pdf-generator.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
