@@ -38,7 +38,9 @@ async function renderRegistrations() {
   cachedRegistrations.forEach((student) => {
     const card = document.createElement('article');
     card.className = 'registration-card';
-    const dateStr = new Date(student.createdAt).toLocaleString();
+    const dateStr = student.createdAt
+      ? new Date(student.createdAt).toLocaleString()
+      : '—';
 
     card.innerHTML = `
       <h3>${student.name || 'Unknown'}</h3>
@@ -154,7 +156,7 @@ if (loginForm) {
     event.preventDefault();
 
     if (!window.RegistrationDB?.isReady()) {
-      setLoginStatus('Cloud database is not configured. See README.md for setup.', true);
+      setLoginStatus('Server is not available. Start the backend and try again.', true);
       return;
     }
 
@@ -212,8 +214,9 @@ if (changePasswordForm) {
       changePasswordForm.reset();
       passwordChangePanel.classList.add('hidden');
       showChangePasswordButton.textContent = 'Change Password';
-      changePasswordStatus.textContent = 'Password updated successfully.';
+      changePasswordStatus.textContent = 'Password updated successfully. Please sign in again.';
       changePasswordStatus.style.color = '#15803d';
+      showLogin();
     } catch (error) {
       console.error(error);
       changePasswordStatus.textContent = 'Unable to update password. Check your current password.';
@@ -240,6 +243,6 @@ if (window.RegistrationDB?.isReady()) {
     }
   });
 } else {
-  setLoginStatus('Local storage is ready. You can sign in with the admin password.', true);
+  setLoginStatus('Server is not available. Start the backend and try again.', true);
   showLogin();
 }
