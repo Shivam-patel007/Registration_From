@@ -11,7 +11,6 @@ import {
   getRegistration,
 } from "./handlers/students.js";
 import {
-  changeAdminPassword,
   getAdminSession,
   signInAdmin,
   signOutAdmin,
@@ -128,21 +127,6 @@ app.post("/api/admin/login", async (req, res) => {
 app.post("/api/admin/logout", async (req, res) => {
   await signOutAdmin(req);
   sendJson(res, 200, { success: true });
-});
-
-app.post("/api/admin/change-password", async (req, res) => {
-  const auth = requireAdmin(req);
-  if (!auth.ok) {
-    sendJson(res, auth.statusCode, { error: auth.error });
-    return;
-  }
-
-  try {
-    await changeAdminPassword(req, req.body);
-    sendJson(res, 200, { success: true });
-  } catch (error) {
-    sendJson(res, 500, { error: error.message || "Unable to update password." });
-  }
 });
 
 app.get("/api/admin/session", async (req, res) => {

@@ -316,8 +316,7 @@ button:disabled {
   white-space: nowrap;
 }
 
-.login-card form,
-.password-change-form {
+.login-card form {
   display: grid;
   gap: 14px;
 }
@@ -326,14 +325,6 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-}
-
-.password-change-panel {
-  margin-top: 18px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #f8fafc;
 }
 
 .dashboard-head {

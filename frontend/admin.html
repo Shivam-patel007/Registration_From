@@ -26,7 +26,7 @@
       <form id="adminLoginForm">
         <label>
           Email ID
-          <input id="adminEmail" type="email" required placeholder="admin@bbsips.edu.in" autocomplete="username" />
+          <input id="adminEmail" type="email" required placeholder="admin@domain.com" autocomplete="username" />
         </label>
         <label>
           Password
@@ -34,28 +34,9 @@
         </label>
         <div class="login-actions">
           <button type="submit">Open Dashboard</button>
-          <button type="button" id="showChangePasswordButton" class="secondary">Change Password</button>
+          <button type="button"><a style="text-decoration: none; color: inherit;" href="index.html">Open Form Page</a></button>
         </div>
       </form>
-
-      <div id="passwordChangePanel" class="password-change-panel hidden">
-        <form id="changePasswordForm" class="password-change-form">
-          <label>
-            Current Password
-            <input id="currentPassword" type="password" required placeholder="Enter current password" />
-          </label>
-          <label>
-            New Password
-            <input id="newPassword" type="password" required placeholder="Enter new password" />
-          </label>
-          <label>
-            Confirm New Password
-            <input id="confirmPassword" type="password" required placeholder="Confirm new password" />
-          </label>
-          <button type="submit">Update Password</button>
-        </form>
-        <p id="changePasswordStatus" class="status-message"></p>
-      </div>
 
       <p id="loginStatus" class="status-message"></p>
     </section>

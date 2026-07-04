@@ -133,14 +133,6 @@ const RegistrationDB = (() => {
     }
   }
 
-  async function changeAdminPassword(currentPassword, newPassword) {
-    await apiRequest("/api/admin/change-password", {
-      method: "POST",
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    setAdminToken(null);
-  }
-
   function onAuthStateChanged(callback) {
     if (!init()) {
       callback(null);
@@ -182,7 +174,6 @@ const RegistrationDB = (() => {
     deleteRegistration,
     signInAdmin,
     signOutAdmin,
-    changeAdminPassword,
     onAuthStateChanged,
   };
 })();
