@@ -1,10 +1,30 @@
 const META_PREFIX = "\n__META__";
 
+const ALLOWED_COURSES = ["BCA", "BBA"];
+
 export function getCourseCode(course) {
-  const normalized = String(course || "").trim().toUpperCase();
+  const normalized = normalizeCourseValue(course);
   if (normalized === "BCA") return "BCA";
   if (normalized === "BBA") return "BBA";
   return "GEN";
+}
+
+export function normalizeCourseValue(course) {
+  return String(course || "").trim().toUpperCase();
+}
+
+export function validateCourse(course) {
+  const normalized = normalizeCourseValue(course);
+
+  if (!normalized) {
+    throw new Error("Please select a course.");
+  }
+
+  if (!ALLOWED_COURSES.includes(normalized)) {
+    throw new Error("Please select a valid course.");
+  }
+
+  return normalized;
 }
 
 export function formatRegistrationId(course, numericId) {
@@ -89,7 +109,7 @@ export function frontendToStudent(values) {
     pincode: values.pincode || "",
     landmark: values.landmark || "",
     fullAddress: buildFullAddress(values.address, values.hostel, values.bus),
-    course: values.course || "",
+    course: validateCourse(values.course),
     tenBoard: values.board10 || "",
     tenscore: values.percentage10 ? String(values.percentage10) : "",
     twelthBoard: values.board || "",

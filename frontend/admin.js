@@ -160,15 +160,16 @@ if (loginForm) {
       return;
     }
 
+    const email = document.getElementById('adminEmail').value.trim();
     const password = document.getElementById('sirPassword').value;
     setLoginStatus('Signing in...');
 
     try {
-      await window.RegistrationDB.signInAdmin(password);
+      await window.RegistrationDB.signInAdmin(email, password);
       showDashboard();
     } catch (error) {
       console.error(error);
-      setLoginStatus('Incorrect admin password.', true);
+      setLoginStatus(error.message || 'Invalid email or password.', true);
     }
   });
 }
@@ -228,6 +229,7 @@ if (changePasswordForm) {
 if (logoutButton) {
   logoutButton.addEventListener('click', async () => {
     await window.RegistrationDB.signOutAdmin();
+    document.getElementById('adminEmail').value = '';
     document.getElementById('sirPassword').value = '';
     changePasswordForm.reset();
     showLogin();

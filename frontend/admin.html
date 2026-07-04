@@ -18,12 +18,16 @@
       <div class="login-card-top">
         <div>
           <h2>Access Dashboard</h2>
-          <p>Sign in with your admin password to view all student registrations.</p>
+          <p>Sign in with your admin email and password to view all student registrations.</p>
         </div>
         <span class="badge-pill">Restricted</span>
       </div>
 
       <form id="adminLoginForm">
+        <label>
+          Email ID
+          <input id="adminEmail" type="email" required placeholder="admin@bbsips.edu.in" autocomplete="username" />
+        </label>
         <label>
           Password
           <input id="sirPassword" type="password" required placeholder="Enter admin password" autocomplete="current-password" />

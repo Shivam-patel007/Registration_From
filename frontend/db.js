@@ -108,14 +108,14 @@ const RegistrationDB = (() => {
     });
   }
 
-  async function signInAdmin(password) {
+  async function signInAdmin(email, password) {
     if (!isReady()) {
       throw new Error("Server connection is not available.");
     }
 
     const session = await apiRequest("/api/admin/login", {
       method: "POST",
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ email, password }),
     });
 
     setAdminToken(session.token);

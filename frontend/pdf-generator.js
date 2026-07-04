@@ -24,12 +24,38 @@ function buildFullAddress(data) {
   return parts.join(', ');
 }
 
+function fieldBlock(label, value, options = {}) {
+  const { fullWidth = false } = options;
+  return `
+    <div style="grid-column:${fullWidth ? '1 / -1' : 'auto'};">
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5b6b8a;margin-bottom:4px;">
+        ${escapeHtml(label)}
+      </div>
+      <div style="background:#f7f9fc;border:1px solid #dbe3ef;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;color:#1a2332;min-height:34px;line-height:1.35;">
+        ${escapeHtml(value)}
+      </div>
+    </div>
+  `;
+}
+
+function skillCard(title, accent) {
+  return `
+    <div style="border:1px solid #dbe3ef;border-radius:12px;overflow:hidden;background:#fff;min-height:78px;box-shadow:0 4px 14px rgba(30,58,95,0.06);">
+      <div style="height:6px;background:${accent};"></div>
+      <div style="padding:14px 10px;text-align:center;font-size:11px;font-weight:700;color:#1e3a5f;letter-spacing:0.02em;">
+        ${escapeHtml(title)}
+      </div>
+    </div>
+  `;
+}
+
 function buildAssessmentFormHtml(data) {
-  const courseTitle = `${escapeHtml(data.course || 'BCA')} 2026-29`;
+  const courseTitle = `${escapeHtml(data.course || 'BCA')} Programme`;
   const photoSource = data.photoDataUrl || data.photoUrl || '';
   const photoHtml = photoSource
     ? `<img src="${photoSource}" alt="Student Photo" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block;" />`
-    : 'Photo';
+    : `<div style="font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:0.08em;">PHOTO</div>`;
+
   const cmToPx = 37.8;
   const columnWidths = [3 * cmToPx, 4 * cmToPx, 6 * cmToPx, 6 * cmToPx];
   const rowHeight = 33;
@@ -37,13 +63,13 @@ function buildAssessmentFormHtml(data) {
 
   const sessionalCellHtml = (height, isHeader = false) => `
     <div style="display:flex;flex-direction:column;width:100%;height:${height}px;box-sizing:border-box;overflow:hidden;">
-      <div style="height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;color:#000;box-sizing:border-box;${isHeader ? 'background:#f5f5f5;' : ''}">
+      <div style="height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#1e3a5f;box-sizing:border-box;${isHeader ? 'background:#eef3fa;' : ''}">
         ${isHeader ? 'Sessional Performance' : ''}
       </div>
       <div style="flex:1;display:flex;flex-direction:column;height:calc(100% - 18px);">
-         <div style="flex:1;border-bottom:1px solid #000;box-sizing:border-box;"></div>
-        <div style="flex:1;border-bottom:1px solid #000;box-sizing:border-box;"></div>
-         <div style="flex:1;box-sizing:border-box;"></div>
+        <div style="flex:1;border-bottom:1px solid #c8d4e6;box-sizing:border-box;"></div>
+        <div style="flex:1;border-bottom:1px solid #c8d4e6;box-sizing:border-box;"></div>
+        <div style="flex:1;box-sizing:border-box;"></div>
       </div>
     </div>
   `;
@@ -52,10 +78,10 @@ function buildAssessmentFormHtml(data) {
     if (index === 0) {
       return `
         <tr>
-          <td style="border:1px solid #000;padding:2px;width:${columnWidths[0]}px;height:${rowHeight}px;font-size:10px;color:#000;box-sizing:border-box;"></td>
-          <td style="border:1px solid #000;padding:2px;width:${columnWidths[1]}px;height:${rowHeight}px;font-size:10px;color:#000;box-sizing:border-box;"></td>
-          <td style="border:1px solid #000;padding:2px;width:${columnWidths[2]}px;height:${rowHeight}px;font-size:10px;color:#000;box-sizing:border-box;"></td>
-          <td rowspan="12" style="border:1px solid #000;padding:0;width:${columnWidths[3]}px;height:${rowHeight * 12}px;font-size:10px;color:#000;vertical-align:top;box-sizing:border-box;">
+          <td style="border:1px solid #c8d4e6;padding:4px;width:${columnWidths[0]}px;height:${rowHeight}px;font-size:10px;color:#1a2332;box-sizing:border-box;background:#fff;"></td>
+          <td style="border:1px solid #c8d4e6;padding:4px;width:${columnWidths[1]}px;height:${rowHeight}px;font-size:10px;color:#1a2332;box-sizing:border-box;background:#fff;"></td>
+          <td style="border:1px solid #c8d4e6;padding:4px;width:${columnWidths[2]}px;height:${rowHeight}px;font-size:10px;color:#1a2332;box-sizing:border-box;background:#fff;"></td>
+          <td rowspan="12" style="border:1px solid #c8d4e6;padding:0;width:${columnWidths[3]}px;height:${rowHeight * 12}px;font-size:10px;color:#1a2332;vertical-align:top;box-sizing:border-box;background:#fff;">
             ${sessionalCellHtml(rowHeight * 12, false)}
           </td>
         </tr>`;
@@ -63,166 +89,172 @@ function buildAssessmentFormHtml(data) {
 
     return `
       <tr>
-        <td style="border:1px solid #000;padding:2px;width:${columnWidths[0]}px;height:${rowHeight}px;font-size:10px;color:#000;box-sizing:border-box;"></td>
-        <td style="border:1px solid #000;padding:2px;width:${columnWidths[1]}px;height:${rowHeight}px;font-size:10px;color:#000;box-sizing:border-box;"></td>
-        <td style="border:1px solid #000;padding:2px;width:${columnWidths[2]}px;height:${rowHeight}px;font-size:10px;color:#000;box-sizing:border-box;"></td>
-        <td style="border:1px solid #000;padding:0;width:${columnWidths[3]}px;height:${rowHeight}px;font-size:10px;color:#000;box-sizing:border-box;">
+        <td style="border:1px solid #c8d4e6;padding:4px;width:${columnWidths[0]}px;height:${rowHeight}px;font-size:10px;color:#1a2332;box-sizing:border-box;background:#fff;"></td>
+        <td style="border:1px solid #c8d4e6;padding:4px;width:${columnWidths[1]}px;height:${rowHeight}px;font-size:10px;color:#1a2332;box-sizing:border-box;background:#fff;"></td>
+        <td style="border:1px solid #c8d4e6;padding:4px;width:${columnWidths[2]}px;height:${rowHeight}px;font-size:10px;color:#1a2332;box-sizing:border-box;background:#fff;"></td>
+        <td style="border:1px solid #c8d4e6;padding:0;width:${columnWidths[3]}px;height:${rowHeight}px;font-size:10px;color:#1a2332;box-sizing:border-box;background:#fff;">
           ${sessionalCellHtml(rowHeight, false)}
         </td>
       </tr>`;
   }).join('');
 
-  const improvementBoxes = Array.from({ length: 4 }, () => `
-    <div style="border:1px solid #000;padding:15px 5px;text-align:center;background:#fff;min-height:70px;"></div>
+  const improvementBoxes = Array.from({ length: 4 }, (_, index) => `
+    <div style="border:1px solid #dbe3ef;border-radius:10px;padding:18px 8px;text-align:center;background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);min-height:72px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#1e3a5f,#2563eb,#c9a227);"></div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#94a3b8;margin-top:6px;">Week ${index + 1}</div>
+    </div>
   `).join('');
 
   return `
     <div id="assessment-form-root" style="
       width:760px;
-      min-height:1000px;
-      padding:24px;
-      background:#fff;
-      color:#000;
-      font-family:Arial,Helvetica,sans-serif;
+      padding:0;
+      background:#ffffff;
+      color:#1a2332;
+      font-family:'Segoe UI',Arial,Helvetica,sans-serif;
       font-size:11px;
-      line-height:1.3;
+      line-height:1.4;
       box-sizing:border-box;
+      overflow:hidden;
+      border-radius:18px;
+      border:1px solid #dbe3ef;
     ">
-      <div style="text-align:center;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid #000;">
-        <h1 style="font-size:18px;font-weight:bold;color:#000;margin:0 0 4px 0;letter-spacing:0.3px;">
-          BBS INSTITUTE OF PROFESSIONAL STUDIES
-        </h1>
-        <div style="font-size:16px;color:#000;font-weight:bold;margin-bottom:4px;">${courseTitle}</div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px;align-items:end;">
-        <div>
-          <label style="display:block;font-size:12px;color:#000;font-weight:bold;margin-bottom:3px;">Name:</label>
-          <div style="border-bottom:1px solid #000;padding:2px 5px;font-size:12px;color:#000;min-height:18px;">
-            ${escapeHtml(data.name)}
-          </div>
-        </div>
-        <div>
-          <label style="display:block;font-size:12px;color:#000;font-weight:bold;margin-bottom:3px;">Mobile:</label>
-          <div style="border-bottom:1px solid #000;padding:2px 5px;font-size:12px;color:#000;min-height:18px;">
-            ${escapeHtml(data.mobile)}
-          </div>
-        </div>
-        <div>
-          <label style="display:block;font-size:12px;color:#000;font-weight:bold;">Admission Year: 2026</label>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 130px;gap:12px;margin-bottom:12px;">
-        <div style="border:1px solid #000;padding:10px;">
-          <div style="font-weight:bold;font-size:12px;color:#000;margin-bottom:8px;border-bottom:1px solid #000;padding-bottom:4px;">
-            PERSONAL INFORMATION
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;">
-            <div>
-              <label style="display:block;font-size:11px;color:#000;font-weight:bold;margin-bottom:2px;">BBS Registration No.</label>
-              <div style="border-bottom:1px solid #000;padding:2px 3px;font-size:12px;color:#000;min-height:18px;">
-                ${escapeHtml(data.registrationId)}
-              </div>
-            </div>
-            <div>
-              <label style="display:block;font-size:11px;color:#000;font-weight:bold;margin-bottom:2px;">University Roll No.</label>
-              <div style="border-bottom:1px solid #000;padding:2px 3px;font-size:12px;color:#000;min-height:18px;"></div>
-            </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;">
-            <div>
-              <label style="display:block;font-size:11px;color:#000;font-weight:bold;margin-bottom:2px;">Father's Name</label>
-              <div style="border-bottom:1px solid #000;padding:2px 3px;font-size:12px;color:#000;min-height:18px;">
-                ${escapeHtml(data.fatherName)}
-              </div>
-            </div>
-            <div>
-              <label style="display:block;font-size:11px;color:#000;font-weight:bold;margin-bottom:2px;">Father's Mobile</label>
-              <div style="border-bottom:1px solid #000;padding:2px 3px;font-size:12px;color:#000;min-height:18px;">
-                ${escapeHtml(data.fatherMobile)}
-              </div>
-            </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;">
-            <div>
-              <label style="display:block;font-size:11px;color:#000;font-weight:bold;margin-bottom:2px;">12th Board</label>
-              <div style="border-bottom:1px solid #000;padding:2px 3px;font-size:12px;color:#000;min-height:18px;">
-                ${escapeHtml(data.board)}
-              </div>
-            </div>
-            <div>
-              <label style="display:block;font-size:11px;color:#000;font-weight:bold;margin-bottom:2px;">12th Percent</label>
-              <div style="border-bottom:1px solid #000;padding:2px 3px;font-size:12px;color:#000;min-height:18px;">
-                ${escapeHtml(formatPercent(data.percentage))}
-              </div>
-            </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;">
-            <div>
-              <label style="display:block;font-size:11px;color:#000;font-weight:bold;margin-bottom:2px;">Hostel</label>
-              <div style="border-bottom:1px solid #000;padding:2px 3px;font-size:12px;color:#000;min-height:18px;">
-                ${escapeHtml(data.hostel)}
-              </div>
-            </div>
-            <div>
-              <label style="display:block;font-size:11px;color:#000;font-weight:bold;margin-bottom:2px;">Bus</label>
-              <div style="border-bottom:1px solid #000;padding:2px 3px;font-size:12px;color:#000;min-height:18px;">${escapeHtml(data.bus || 'No')}</div>
-            </div>
-          </div>
-
+      <div style="background:linear-gradient(135deg,#1e3a5f 0%,#2c5282 55%,#1e3a5f 100%);padding:28px 30px 22px;color:#fff;position:relative;">
+        <div style="position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#c9a227,#f0d78c,#c9a227);"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
           <div>
-            <label style="display:block;font-size:11px;color:#000;font-weight:bold;margin-bottom:2px;">Address</label>
-            <div style="border-bottom:1px solid #000;padding:2px 3px;font-size:12px;color:#000;min-height:36px;">
-              ${escapeHtml(buildFullAddress(data))}
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;opacity:0.82;margin-bottom:8px;">
+              BBS Institute of Professional Studies
+            </div>
+            <h1 style="font-size:24px;font-weight:800;margin:0 0 6px 0;letter-spacing:0.02em;line-height:1.15;">
+              Student Assessment Form
+            </h1>
+            <div style="font-size:14px;font-weight:600;opacity:0.95;">${courseTitle} · Session 2026–2029</div>
+          </div>
+          <div style="text-align:right;min-width:130px;">
+            <div style="display:inline-block;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">
+              First Assessment
+            </div>
+            <div style="margin-top:10px;font-size:11px;opacity:0.88;">Admission Year <strong style="color:#f0d78c;">2026</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:24px 28px 10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;">
+          ${fieldBlock('Student Name', data.name)}
+          ${fieldBlock('Mobile Number', data.mobile)}
+          ${fieldBlock('Registration ID', data.registrationId)}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 148px;gap:18px;margin-bottom:18px;">
+          <div style="border:1px solid #dbe3ef;border-radius:16px;padding:18px;background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #e8eef6;">
+              <div style="width:8px;height:24px;border-radius:999px;background:linear-gradient(180deg,#c9a227,#f0d78c);"></div>
+              <div style="font-size:12px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#1e3a5f;">
+                Personal Information
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              ${fieldBlock('Father\'s Name', data.fatherName)}
+              ${fieldBlock('Father\'s Mobile', data.fatherMobile)}
+              ${fieldBlock('10th Board', data.board10)}
+              ${fieldBlock('10th Percentage', formatPercent(data.percentage10))}
+              ${fieldBlock('12th Board', data.board)}
+              ${fieldBlock('12th Percentage', formatPercent(data.percentage))}
+              ${fieldBlock('Hostel Required', data.hostel)}
+              ${fieldBlock('Bus Facility', data.bus || 'No')}
+              ${fieldBlock('Full Address', buildFullAddress(data), { fullWidth: true })}
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;align-items:center;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5b6b8a;margin-bottom:8px;width:100%;text-align:center;">
+              Student Photograph
+            </div>
+            <div style="width:132px;height:168px;border-radius:14px;overflow:hidden;border:3px solid #1e3a5f;background:#f8fafc;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(30,58,95,0.18);">
+              ${photoHtml}
+            </div>
+            <div style="margin-top:10px;width:100%;padding:8px 10px;border-radius:10px;background:#eef3fa;border:1px solid #dbe3ef;text-align:center;">
+              <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#5b6b8a;">University Roll No.</div>
+              <div style="font-size:12px;font-weight:700;color:#1e3a5f;margin-top:4px;min-height:16px;"></div>
             </div>
           </div>
         </div>
 
-        <div style="border:1px solid #000;width:120px;height:140px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:#000;font-weight:bold;overflow:hidden;background:#fff;">
-          ${photoHtml}
+        <div style="margin:18px 0 12px;text-align:center;">
+          <div style="display:inline-flex;align-items:center;gap:10px;padding:8px 18px;border-radius:999px;background:#eef3fa;border:1px solid #dbe3ef;">
+            <div style="width:28px;height:2px;background:linear-gradient(90deg,#1e3a5f,#2563eb);"></div>
+            <div style="font-size:12px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#1e3a5f;">
+              Aptitude Assessment Areas
+            </div>
+            <div style="width:28px;height:2px;background:linear-gradient(90deg,#2563eb,#c9a227);"></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;">
+          ${skillCard('Maths Ability', 'linear-gradient(90deg,#1e3a5f,#2c5282)')}
+          ${skillCard('English Writing Skills', 'linear-gradient(90deg,#2563eb,#3b82f6)')}
+          ${skillCard('Spoken Skills', 'linear-gradient(90deg,#c9a227,#f0d78c)')}
+        </div>
+
+        <div style="border:1px solid #dbe3ef;border-radius:16px;overflow:hidden;margin-bottom:16px;">
+          <div style="background:#1e3a5f;color:#fff;padding:10px 14px;font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;">
+            Counselling & Performance Record
+          </div>
+          <div style="padding:12px;background:#fff;overflow-x:auto;">
+            <table style="width:${tableWidth}px;border-collapse:collapse;table-layout:fixed;">
+              <thead>
+                <tr>
+                  <th style="background:#eef3fa;border:1px solid #c8d4e6;padding:6px 4px;font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#1e3a5f;text-align:center;width:${columnWidths[0]}px;height:22px;box-sizing:border-box;">Date</th>
+                  <th style="background:#eef3fa;border:1px solid #c8d4e6;padding:6px 4px;font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#1e3a5f;text-align:center;width:${columnWidths[1]}px;height:22px;box-sizing:border-box;">Purpose</th>
+                  <th style="background:#eef3fa;border:1px solid #c8d4e6;padding:6px 4px;font-size:9px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#1e3a5f;text-align:center;width:${columnWidths[2]}px;height:22px;box-sizing:border-box;">Remarks</th>
+                  <th style="background:#eef3fa;border:1px solid #c8d4e6;padding:0;font-size:9px;font-weight:800;color:#1e3a5f;text-align:center;width:${columnWidths[3]}px;height:22px;box-sizing:border-box;">
+                    ${sessionalCellHtml(22, true)}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tableRows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <div style="font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#1e3a5f;margin-bottom:10px;">
+            Improvement Observed
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+            ${improvementBoxes}
+          </div>
         </div>
       </div>
 
-      <div style="margin:10px 0;">
-        <div style="font-weight:bold;font-size:13px;margin-bottom:6px;color:#000;text-align:center;">FIRST ASSESSMENT</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
-          <div style="border:1px solid #000;padding:2px;text-align:center;min-height:60px;display:flex;align-items:flex-start;justify-content:center;font-weight:bold;font-size:11px;color:#000;">Maths Ability</div>
-          <div style="border:1px solid #000;padding:2px;text-align:center;min-height:60px;display:flex;align-items:flex-start;justify-content:center;font-weight:bold;font-size:11px;color:#000;">English Writing Skills</div>
-          <div style="border:1px solid #000;padding:2px;text-align:center;min-height:60px;display:flex;align-items:flex-start;justify-content:center;font-weight:bold;font-size:11px;color:#000;">Spoken Skills</div>
+      <div style="margin-top:8px;padding:14px 28px 20px;border-top:1px solid #e8eef6;background:linear-gradient(180deg,#f8fafc 0%,#ffffff 100%);display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div style="font-size:10px;color:#5b6b8a;line-height:1.5;">
+          <strong style="color:#1e3a5f;">BBS Institute of Professional Studies</strong><br>
+          Empowering students with quality education and professional growth.
         </div>
-      </div>
-
-      <div style="margin:12px 0;">
-        <table style="width:${tableWidth}px;border-collapse:collapse;margin-bottom:12px;table-layout:fixed;">
-          <thead>
-            <tr>
-              <th style="background:#f5f5f5;border:1px solid #000;padding:3px;font-size:10px;font-weight:bold;color:#000;text-align:center;width:${columnWidths[0]}px;height:18px;box-sizing:border-box;">Date</th>
-              <th style="background:#f5f5f5;border:1px solid #000;padding:3px;font-size:10px;font-weight:bold;color:#000;text-align:center;width:${columnWidths[1]}px;height:18px;box-sizing:border-box;">Purpose</th>
-              <th style="background:#f5f5f5;border:1px solid #000;padding:3px;font-size:10px;font-weight:bold;color:#000;text-align:center;width:${columnWidths[2]}px;height:18px;box-sizing:border-box;">Remarks</th>
-              <th style="background:#f5f5f5;border:1px solid #000;padding:0;font-size:10px;font-weight:bold;color:#000;text-align:center;width:${columnWidths[3]}px;height:18px;box-sizing:border-box;">
-                ${sessionalCellHtml(18, true)}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-        </table>
-      </div>
-
-      <div style="margin-top:12px;">
-        <div style="font-weight:bold;font-size:13px;margin-bottom:8px;color:#000;">Improvement Observed</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
-          ${improvementBoxes}
+        <div style="text-align:right;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#94a3b8;">
+          Official Assessment Document
         </div>
       </div>
     </div>
   `;
+}
+
+async function waitForFormImages(element) {
+  const image = element.querySelector('img');
+  if (!image) return;
+
+  if (!image.complete) {
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = reject;
+    });
+  }
 }
 
 async function renderAssessmentFormElement(data) {
@@ -230,46 +262,88 @@ async function renderAssessmentFormElement(data) {
   wrapper.style.position = 'fixed';
   wrapper.style.left = '-10000px';
   wrapper.style.top = '0';
+  wrapper.style.width = '760px';
   wrapper.style.background = '#ffffff';
+  wrapper.style.overflow = 'hidden';
   wrapper.innerHTML = buildAssessmentFormHtml(data);
   document.body.appendChild(wrapper);
 
   const element = wrapper.querySelector('#assessment-form-root');
   await new Promise((resolve) => requestAnimationFrame(resolve));
-
-  if (data.photoDataUrl || data.photoUrl) {
-    const image = element.querySelector('img');
-    if (image && !image.complete) {
-      await new Promise((resolve, reject) => {
-        image.onload = resolve;
-        image.onerror = reject;
-      });
-    }
-  }
+  await waitForFormImages(element);
 
   return { wrapper, element };
 }
 
-async function generateAssessmentPdf(data, fileName) {
+async function captureFormCanvas(element) {
+  await waitForFormImages(element);
+
+  return html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+    width: element.offsetWidth,
+    height: element.offsetHeight,
+    windowWidth: element.offsetWidth,
+    windowHeight: element.offsetHeight,
+    x: 0,
+    y: 0,
+    scrollX: 0,
+    scrollY: 0,
+    onclone: (doc) => {
+      const clonedForm = doc.getElementById('assessment-form-root');
+      if (!clonedForm) return;
+
+      clonedForm.style.boxShadow = 'none';
+      clonedForm.style.margin = '0';
+      clonedForm.style.minHeight = 'auto';
+      clonedForm.style.borderRadius = '0';
+    },
+  });
+}
+
+function addCanvasToPdf(pdf, canvas, margin = 8) {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const availableWidth = pageWidth - margin * 2;
+  const availableHeight = pageHeight - margin * 2;
+  const imgWidth = availableWidth;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  const imgData = canvas.toDataURL('image/png', 1.0);
+
+  let heightLeft = imgHeight;
+  let position = margin;
+
+  pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+  heightLeft -= availableHeight;
+
+  while (heightLeft > 0) {
+    position = margin - (imgHeight - heightLeft);
+    pdf.addPage();
+    pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+    heightLeft -= availableHeight;
+  }
+}
+
+async function generateAssessmentPdf(data, fileName, options = {}) {
   if (!window.html2canvas || !window.jspdf?.jsPDF) {
     throw new Error('PDF libraries are not loaded.');
   }
 
-  const { wrapper, element } = await renderAssessmentFormElement(data);
+  const sourceElement = options.sourceElement || null;
+  let wrapper = null;
+  let element = sourceElement;
+
+  if (!element) {
+    const rendered = await renderAssessmentFormElement(data);
+    wrapper = rendered.wrapper;
+    element = rendered.element;
+  }
 
   try {
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      width: element.scrollWidth,
-      height: element.scrollHeight,
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight,
-    });
-
+    const canvas = await captureFormCanvas(element);
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -278,22 +352,12 @@ async function generateAssessmentPdf(data, fileName) {
       compress: true,
     });
 
-    const imgData = canvas.toDataURL('image/png');
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const margin = 10;
-    const availableWidth = pageWidth - margin * 2;
-    const availableHeight = pageHeight - margin * 2;
-    const scale = Math.min(availableWidth / canvas.width, availableHeight / canvas.height);
-    const imgWidth = canvas.width * scale;
-    const imgHeight = canvas.height * scale;
-    const x = (pageWidth - imgWidth) / 2;
-    const y = (pageHeight - imgHeight) / 2;
-
-    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+    addCanvasToPdf(pdf, canvas);
     pdf.save(fileName);
   } finally {
-    document.body.removeChild(wrapper);
+    if (wrapper) {
+      document.body.removeChild(wrapper);
+    }
   }
 }
 

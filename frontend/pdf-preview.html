@@ -7,32 +7,121 @@
   <link rel="stylesheet" href="style.css" />
   <style>
     body {
-      background: var(--bg);
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(201, 162, 39, 0.16), transparent 24%),
+        linear-gradient(180deg, #0f172a 0%, #1e293b 45%, #0f172a 100%);
+      color: #e2e8f0;
     }
 
     .preview-page {
-      max-width: 920px;
+      max-width: 980px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 28px 20px 40px;
+    }
+
+    .preview-hero {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .preview-hero .eyebrow {
+      color: #f0d78c;
+      margin-bottom: 8px;
+    }
+
+    .preview-hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      color: #fff;
+    }
+
+    .preview-hero p {
+      margin: 0;
+      color: rgba(226, 232, 240, 0.78);
     }
 
     .preview-toolbar {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
       justify-content: center;
-      margin-bottom: 20px;
+      align-items: center;
+      margin-bottom: 22px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .preview-toolbar button {
+      min-width: 140px;
+    }
+
+    .preview-toolbar .secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .preview-toolbar .secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .student-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .student-chip span {
+      color: #f0d78c;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .preview-stage {
+      display: flex;
+      justify-content: center;
+      padding: 12px 0 0;
     }
 
     .preview-shell {
-      overflow-x: auto;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: var(--shadow);
+      overflow: auto;
+      max-width: 100%;
+      padding: 18px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    .preview-empty {
+      padding: 28px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #1a2332;
+      text-align: center;
     }
 
     @media print {
+      body {
+        background: #fff;
+      }
+
+      .preview-hero,
       .preview-toolbar {
         display: none;
       }
@@ -41,22 +130,37 @@
         padding: 0;
       }
 
+      .preview-stage,
       .preview-shell {
+        padding: 0;
         border: none;
         box-shadow: none;
+        background: transparent;
       }
     }
   </style>
 </head>
 <body>
   <div class="preview-page">
+    <div class="preview-hero">
+      <p class="eyebrow">Assessment Preview</p>
+      <h1>Student Assessment Form</h1>
+      <p>Review the official document before downloading or printing.</p>
+    </div>
+
     <div class="preview-toolbar">
+      <div class="student-chip" id="studentChip" hidden>
+        <span>Student</span>
+        <strong id="studentChipName"></strong>
+      </div>
       <button type="button" onclick="generatePDF()">Download PDF</button>
       <button type="button" class="secondary" onclick="window.print()">Print</button>
       <button type="button" class="secondary" onclick="goBack()">Back to Dashboard</button>
     </div>
 
-    <div class="preview-shell" id="preview-shell"></div>
+    <div class="preview-stage">
+      <div class="preview-shell" id="preview-shell"></div>
+    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -67,20 +171,26 @@
 
     function loadFormData() {
       const stored = sessionStorage.getItem('adminPdfPreviewData');
+      const shell = document.getElementById('preview-shell');
+
       if (!stored) {
-        document.getElementById('preview-shell').innerHTML =
-          '<p style="padding:24px;color:#000;">No preview data available. Open this page from the admin dashboard.</p>';
+        shell.innerHTML = '<div class="preview-empty">No preview data available. Open this page from the admin dashboard.</div>';
         return;
       }
 
       try {
         currentFormData = JSON.parse(stored);
-        document.getElementById('preview-shell').innerHTML =
-          window.PdfGenerator.buildAssessmentFormHtml(currentFormData);
+        shell.innerHTML = window.PdfGenerator.buildAssessmentFormHtml(currentFormData);
+
+        const chip = document.getElementById('studentChip');
+        const chipName = document.getElementById('studentChipName');
+        if (currentFormData.name) {
+          chip.hidden = false;
+          chipName.textContent = currentFormData.name;
+        }
       } catch (error) {
         console.error(error);
-        document.getElementById('preview-shell').innerHTML =
-          '<p style="padding:24px;color:#000;">Unable to load preview data.</p>';
+        shell.innerHTML = '<div class="preview-empty">Unable to load preview data.</div>';
       }
     }
 
@@ -90,11 +200,19 @@
         return;
       }
 
+      const formElement = document.getElementById('assessment-form-root');
+      if (!formElement) {
+        alert('Assessment form is not loaded.');
+        return;
+      }
+
       const name = currentFormData.name || 'student';
       const fileName = `${name.replace(/\s+/g, '_')}-Assessment-Form.pdf`;
 
       try {
-        await window.PdfGenerator.generateAssessmentPdf(currentFormData, fileName);
+        await window.PdfGenerator.generateAssessmentPdf(currentFormData, fileName, {
+          sourceElement: formElement,
+        });
       } catch (error) {
         console.error(error);
         alert('Unable to generate PDF. Please try again.');

@@ -24,6 +24,11 @@ export async function createRegistration(body, photoFile) {
     .single();
 
   if (error) {
+    if (error.message?.includes('invalid input value for enum course_type')) {
+      throw new Error(
+        "BBA is not enabled in the database yet. Run this in Supabase SQL Editor: ALTER TYPE course_type ADD VALUE IF NOT EXISTS 'BBA';"
+      );
+    }
     throw new Error(error.message || "Unable to save registration.");
   }
 

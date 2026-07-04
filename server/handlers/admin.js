@@ -1,11 +1,17 @@
 import { supabase } from "../db/connection.js";
 import { createSession, destroySession, getBearerToken, getSession } from "../utils/auth.js";
 
-async function getAdminRecord() {
+async function getAdminByEmail(email) {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    return null;
+  }
+
   const { data, error } = await supabase
     .from("admin")
     .select("id, email, password")
-    .limit(1)
+    .ilike("email", normalizedEmail)
     .maybeSingle();
 
   if (error) {
@@ -15,15 +21,29 @@ async function getAdminRecord() {
   return data;
 }
 
-export async function signInAdmin(password) {
-  const admin = await getAdminRecord();
+async function getAdminById(adminId) {
+  const { data, error } = await supabase
+    .from("admin")
+    .select("id, email, password")
+    .eq("id", adminId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message || "Unable to load admin account.");
+  }
+
+  return data;
+}
+
+export async function signInAdmin(email, password) {
+  const admin = await getAdminByEmail(email);
 
   if (!admin) {
-    throw new Error("Admin account is not configured in the database.");
+    throw new Error("Invalid email or password.");
   }
 
   if (String(password) !== String(admin.password)) {
-    throw new Error("Incorrect admin password.");
+    throw new Error("Invalid email or password.");
   }
 
   const token = createSession(admin.id);
@@ -49,7 +69,7 @@ export async function changeAdminPassword(req, body) {
     throw new Error("Please enter a new password.");
   }
 
-  const admin = await getAdminRecord();
+  const admin = await getAdminById(session.adminId);
   if (!admin) {
     throw new Error("Admin account not found.");
   }
@@ -75,8 +95,8 @@ export async function getAdminSession(req) {
   const session = getSession(token);
   if (!session) return null;
 
-  const admin = await getAdminRecord();
-  if (!admin || admin.id !== session.adminId) return null;
+  const admin = await getAdminById(session.adminId);
+  if (!admin) return null;
 
   return { uid: String(admin.id), email: admin.email };
 }

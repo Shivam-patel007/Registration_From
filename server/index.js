@@ -117,10 +117,10 @@ app.delete("/api/registrations/:id", async (req, res) => {
 
 app.post("/api/admin/login", async (req, res) => {
   try {
-    const session = await signInAdmin(req.body.password);
+    const session = await signInAdmin(req.body.email, req.body.password);
     sendJson(res, 200, session);
   } catch (error) {
-    const statusCode = error.message === "Incorrect admin password." ? 401 : 500;
+    const statusCode = error.message === "Invalid email or password." ? 401 : 500;
     sendJson(res, statusCode, { error: error.message || "Unable to sign in." });
   }
 });
