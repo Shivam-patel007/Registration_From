@@ -4,10 +4,6 @@ const loginForm = document.getElementById('adminLoginForm');
 const loginStatus = document.getElementById('loginStatus');
 const logoutButton = document.getElementById('logoutButton');
 const registrationsList = document.getElementById('registrationsList');
-const showChangePasswordButton = document.getElementById('showChangePasswordButton');
-const passwordChangePanel = document.getElementById('passwordChangePanel');
-const changePasswordForm = document.getElementById('changePasswordForm');
-const changePasswordStatus = document.getElementById('changePasswordStatus');
 
 let cachedRegistrations = [];
 
@@ -38,7 +34,9 @@ async function renderRegistrations() {
   cachedRegistrations.forEach((student) => {
     const card = document.createElement('article');
     card.className = 'registration-card';
-    const dateStr = new Date(student.createdAt).toLocaleString();
+    const dateStr = student.createdAt
+      ? new Date(student.createdAt).toLocaleString()
+      : '—';
 
     card.innerHTML = `
       <h3>${student.name || 'Unknown'}</h3>
@@ -95,9 +93,6 @@ function showLogin() {
   loginCard.classList.remove('hidden');
   dashboard.classList.add('hidden');
   setLoginStatus('');
-  if (changePasswordStatus) changePasswordStatus.textContent = '';
-  if (passwordChangePanel) passwordChangePanel.classList.add('hidden');
-  if (showChangePasswordButton) showChangePasswordButton.textContent = 'Change Password';
 }
 
 async function getStudent(registrationId) {
@@ -154,70 +149,20 @@ if (loginForm) {
     event.preventDefault();
 
     if (!window.RegistrationDB?.isReady()) {
-      setLoginStatus('Cloud database is not configured. See README.md for setup.', true);
+      setLoginStatus('Server is not available. Start the backend and try again.', true);
       return;
     }
 
+    const email = document.getElementById('adminEmail').value.trim();
     const password = document.getElementById('sirPassword').value;
     setLoginStatus('Signing in...');
 
     try {
-      await window.RegistrationDB.signInAdmin(password);
+      await window.RegistrationDB.signInAdmin(email, password);
       showDashboard();
     } catch (error) {
       console.error(error);
-      setLoginStatus('Incorrect admin password.', true);
-    }
-  });
-}
-
-if (showChangePasswordButton) {
-  showChangePasswordButton.addEventListener('click', () => {
-    const isHidden = passwordChangePanel.classList.contains('hidden');
-    if (isHidden) {
-      passwordChangePanel.classList.remove('hidden');
-      showChangePasswordButton.textContent = 'Hide Change Password';
-    } else {
-      passwordChangePanel.classList.add('hidden');
-      showChangePasswordButton.textContent = 'Change Password';
-    }
-  });
-}
-
-if (changePasswordForm) {
-  changePasswordForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-
-    changePasswordStatus.textContent = '';
-    changePasswordStatus.style.color = '#111827';
-
-    if (!newPassword.trim()) {
-      changePasswordStatus.textContent = 'Please enter a new password.';
-      changePasswordStatus.style.color = '#b91c1c';
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      changePasswordStatus.textContent = 'The new passwords do not match.';
-      changePasswordStatus.style.color = '#b91c1c';
-      return;
-    }
-
-    try {
-      await window.RegistrationDB.changeAdminPassword(currentPassword, newPassword);
-      changePasswordForm.reset();
-      passwordChangePanel.classList.add('hidden');
-      showChangePasswordButton.textContent = 'Change Password';
-      changePasswordStatus.textContent = 'Password updated successfully.';
-      changePasswordStatus.style.color = '#15803d';
-    } catch (error) {
-      console.error(error);
-      changePasswordStatus.textContent = 'Unable to update password. Check your current password.';
-      changePasswordStatus.style.color = '#b91c1c';
+      setLoginStatus(error.message || 'Invalid email or password.', true);
     }
   });
 }
@@ -225,8 +170,8 @@ if (changePasswordForm) {
 if (logoutButton) {
   logoutButton.addEventListener('click', async () => {
     await window.RegistrationDB.signOutAdmin();
+    document.getElementById('adminEmail').value = '';
     document.getElementById('sirPassword').value = '';
-    changePasswordForm.reset();
     showLogin();
   });
 }
@@ -240,6 +185,6 @@ if (window.RegistrationDB?.isReady()) {
     }
   });
 } else {
-  setLoginStatus('Local storage is ready. You can sign in with the admin password.', true);
+  setLoginStatus('Server is not available. Start the backend and try again.', true);
   showLogin();
 }

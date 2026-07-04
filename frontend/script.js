@@ -3,6 +3,9 @@ const submitButton = document.getElementById('submitButton');
 const statusMessage = document.getElementById('status');
 const photoInput = document.getElementById('photo');
 const photoPreview = document.getElementById('photoPreview');
+const session = document.getElementById('session');
+
+session.textContent = `Academic Session ${new Date().getFullYear()} - ${new Date().getFullYear() + 3}`;
 
 const MAX_PHOTO_SIZE = 2 * 1024 * 1024;
 
@@ -26,7 +29,6 @@ function showSuccessMessage(credentials) {
   statusMessage.innerHTML = `
     <strong>Registration submitted successfully.</strong><br><br>
     Registration ID: <strong>${escapeHtml(credentials.id)}</strong><br>
-    Password: <strong>${escapeHtml(credentials.password)}</strong><br><br>
     <span class="note">Please save these details for your records.</span>
   `;
 }

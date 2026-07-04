@@ -1,185 +1,136 @@
 const RegistrationDB = (() => {
   const STORAGE_KEYS = {
-    registrations: 'bbs_registrations',
-    adminPassword: 'bbs_admin_password',
-    adminAuth: 'bbs_admin_auth',
+    adminToken: "bbs_admin_token",
   };
-  const DEFAULT_ADMIN_PASSWORD = 'admin123';
+
   let initialized = false;
 
-  function getCourseCode(course) {
-    const normalized = String(course || '').trim().toUpperCase();
-    if (normalized === 'BCA') return 'BCA';
-    if (normalized === 'BBA') return 'BBA';
-    return 'GEN';
+  function getAdminToken() {
+    return window.sessionStorage.getItem(STORAGE_KEYS.adminToken);
   }
 
-  function generatePassword() {
-    return Math.random().toString(36).slice(-8).toUpperCase();
-  }
-
-  function formatRegistration(data) {
-    if (!data) return null;
-
-    return {
-      ...data,
-      createdAt: data.createdAt || new Date().toISOString(),
-    };
-  }
-
-  function readRegistrations() {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEYS.registrations);
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.warn('Unable to read registrations from local storage.', error);
-      return [];
+  function setAdminToken(token) {
+    if (token) {
+      window.sessionStorage.setItem(STORAGE_KEYS.adminToken, token);
+    } else {
+      window.sessionStorage.removeItem(STORAGE_KEYS.adminToken);
     }
   }
 
-  function saveRegistrations(registrations) {
-    window.localStorage.setItem(STORAGE_KEYS.registrations, JSON.stringify(registrations));
-  }
+  async function apiRequest(path, options = {}) {
+    const headers = { ...(options.headers || {}) };
+    const isFormData =
+      typeof FormData !== "undefined" && options.body instanceof FormData;
 
-  function getAdminPassword() {
-    const storedPassword = window.localStorage.getItem(STORAGE_KEYS.adminPassword);
-    if (storedPassword) return storedPassword;
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
 
-    window.localStorage.setItem(STORAGE_KEYS.adminPassword, DEFAULT_ADMIN_PASSWORD);
-    return DEFAULT_ADMIN_PASSWORD;
+    const token = getAdminToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(path, {
+      ...options,
+      headers,
+    });
+
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch {
+      payload = {};
+    }
+
+    if (!response.ok) {
+      throw new Error(payload.error || "Request failed.");
+    }
+
+    return payload;
   }
 
   function init() {
     if (initialized) return true;
 
-    try {
-      if (typeof window === 'undefined' || !window.localStorage) {
-        return false;
-      }
-
-      getAdminPassword();
-      initialized = true;
-      return true;
-    } catch (error) {
-      console.warn('Local storage is not available.', error);
+    if (typeof window === "undefined" || !window.fetch) {
       return false;
     }
+
+    initialized = true;
+    return true;
   }
 
   function isReady() {
     return init();
   }
 
-  function readFileAsDataUrl(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Unable to read photo file.'));
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function allocateRegistrationId(course) {
-    const courseCode = getCourseCode(course);
-    const registrations = readRegistrations();
-    const numbers = registrations
-      .map((registration) => registration.id)
-      .filter((id) => typeof id === 'string' && id.startsWith(courseCode))
-      .map((id) => Number.parseInt(id.replace(courseCode, ''), 10))
-      .filter((value) => Number.isFinite(value));
-
-    const nextNumber = numbers.length ? Math.max(...numbers) + 1 : 1;
-    return `${courseCode}${String(nextNumber).padStart(3, '0')}`;
-  }
-
   async function createRegistration(values, photoFile) {
     if (!isReady()) {
-      throw new Error('Offline registration is not available in this browser.');
+      throw new Error("Online registration is not available in this browser.");
     }
 
-    const registrationId = allocateRegistrationId(values.course);
-    const password = generatePassword();
-    const photoDataUrl = await readFileAsDataUrl(photoFile);
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    formData.append("photo", photoFile);
 
-    const registration = {
-      id: registrationId,
-      password,
-      name: values.name || '',
-      mobile: values.mobile || '',
-      fatherName: values.fatherName || '',
-      fatherMobile: values.fatherMobile || '',
-      state: values.state || '',
-      pincode: values.pincode || '',
-      district: values.district || '',
-      landmark: values.landmark || '',
-      address: values.address || '',
-      course: values.course || '',
-      board10: values.board10 || '',
-      percentage10: values.percentage10 || '',
-      board: values.board || '',
-      percentage: values.percentage || '',
-      hostel: values.hostel || '',
-      bus: values.bus || '',
-      photoDataUrl,
-      photoUrl: photoDataUrl,
-      createdAt: new Date().toISOString(),
-    };
-
-    const registrations = readRegistrations();
-    registrations.unshift(registration);
-    saveRegistrations(registrations);
-
-    return registration;
+    return apiRequest("/api/registrations", {
+      method: "POST",
+      body: formData,
+    });
   }
 
   async function getAllRegistrations() {
     if (!isReady()) return [];
-
-    return readRegistrations()
-      .map(formatRegistration)
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return apiRequest("/api/registrations");
   }
 
   async function getRegistration(registrationId) {
     if (!isReady()) return null;
 
-    const registration = readRegistrations().find((item) => item.id === registrationId);
-    return registration ? formatRegistration(registration) : null;
+    try {
+      return await apiRequest(`/api/registrations/${encodeURIComponent(registrationId)}`);
+    } catch (error) {
+      if (error.message === "Registration not found.") {
+        return null;
+      }
+      throw error;
+    }
   }
 
   async function deleteRegistration(registrationId) {
     if (!isReady()) return;
 
-    const registrations = readRegistrations().filter((item) => item.id !== registrationId);
-    saveRegistrations(registrations);
+    await apiRequest(`/api/registrations/${encodeURIComponent(registrationId)}`, {
+      method: "DELETE",
+    });
   }
 
-  async function signInAdmin(password) {
+  async function signInAdmin(email, password) {
     if (!isReady()) {
-      throw new Error('Local storage is not available.');
+      throw new Error("Server connection is not available.");
     }
 
-    if (String(password) !== getAdminPassword()) {
-      throw new Error('Incorrect admin password.');
-    }
+    const session = await apiRequest("/api/admin/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
 
-    window.localStorage.setItem(STORAGE_KEYS.adminAuth, 'true');
+    setAdminToken(session.token);
   }
 
   async function signOutAdmin() {
-    window.localStorage.removeItem(STORAGE_KEYS.adminAuth);
-  }
-
-  async function changeAdminPassword(currentPassword, newPassword) {
-    if (!newPassword || !String(newPassword).trim()) {
-      throw new Error('Please enter a new password.');
+    try {
+      if (getAdminToken()) {
+        await apiRequest("/api/admin/logout", { method: "POST" });
+      }
+    } catch (error) {
+      console.warn("Unable to sign out on server.", error);
+    } finally {
+      setAdminToken(null);
     }
-
-    if (String(currentPassword) !== getAdminPassword()) {
-      throw new Error('Current password is incorrect.');
-    }
-
-    window.localStorage.setItem(STORAGE_KEYS.adminPassword, String(newPassword).trim());
   }
 
   function onAuthStateChanged(callback) {
@@ -188,9 +139,31 @@ const RegistrationDB = (() => {
       return () => {};
     }
 
-    const isSignedIn = window.localStorage.getItem(STORAGE_KEYS.adminAuth) === 'true';
-    callback(isSignedIn ? { uid: 'local-admin' } : null);
-    return () => {};
+    let cancelled = false;
+
+    (async () => {
+      const token = getAdminToken();
+      if (!token) {
+        if (!cancelled) callback(null);
+        return;
+      }
+
+      try {
+        const session = await apiRequest("/api/admin/session");
+        if (!cancelled) {
+          callback(session);
+        }
+      } catch {
+        setAdminToken(null);
+        if (!cancelled) {
+          callback(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }
 
   return {
@@ -201,7 +174,6 @@ const RegistrationDB = (() => {
     deleteRegistration,
     signInAdmin,
     signOutAdmin,
-    changeAdminPassword,
     onAuthStateChanged,
   };
 })();
