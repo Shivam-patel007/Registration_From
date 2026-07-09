@@ -117,17 +117,23 @@
     }
 
     @media print {
+      @page {
+        size: A4 portrait;
+        margin: 6mm;
+      }
+
       body {
         background: #fff;
       }
 
       .preview-hero,
       .preview-toolbar {
-        display: none;
+        display: none !important;
       }
 
       .preview-page {
         padding: 0;
+        max-width: none;
       }
 
       .preview-stage,
@@ -136,6 +142,14 @@
         border: none;
         box-shadow: none;
         background: transparent;
+        overflow: visible;
+      }
+
+      #assessment-form-root {
+        max-width: 100% !important;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
       }
     }
   </style>
