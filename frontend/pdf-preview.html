@@ -117,17 +117,23 @@
     }
 
     @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+
       body {
         background: #fff;
       }
 
       .preview-hero,
       .preview-toolbar {
-        display: none;
+        display: none !important;
       }
 
       .preview-page {
         padding: 0;
+        max-width: none;
       }
 
       .preview-stage,
@@ -136,6 +142,20 @@
         border: none;
         box-shadow: none;
         background: transparent;
+        overflow: visible;
+      }
+
+      .preview-shell {
+        display: block;
+      }
+
+      #assessment-form-root {
+        width: 100% !important;
+        max-width: 100% !important;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+        margin: 0;
       }
     }
   </style>
@@ -145,7 +165,7 @@
     <div class="preview-hero">
       <p class="eyebrow">Assessment Preview</p>
       <h1>Student Assessment Form</h1>
-      <p>Review the official document before downloading or printing.</p>
+      <p>Review the official document before printing.</p>
     </div>
 
     <div class="preview-toolbar">
@@ -153,7 +173,6 @@
         <span>Student</span>
         <strong id="studentChipName"></strong>
       </div>
-      <button type="button" onclick="generatePDF()">Download PDF</button>
       <button type="button" class="secondary" onclick="window.print()">Print</button>
       <button type="button" class="secondary" onclick="goBack()">Back to Dashboard</button>
     </div>
