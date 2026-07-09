@@ -24,6 +24,30 @@ function buildFullAddress(data) {
   return parts.join(', ');
 }
 
+function resolveJoinedDateValue(data) {
+  const values = [data?.joinedDate, data?.joined_date, data?.createdAt, data?.joinedAt, data?.date, data?.year, data?.joinedYear];
+  for (const value of values) {
+    if (value === null || value === undefined || value === '') continue;
+    return value;
+  }
+  return '';
+}
+
+function getAdmissionYear(value) {
+  if (!value) return '';
+
+  const text = String(value).trim();
+  if (!text) return '';
+
+  const parsedDate = new Date(text);
+  if (!Number.isNaN(parsedDate.getTime())) {
+    return String(parsedDate.getFullYear());
+  }
+
+  const yearMatch = text.match(/\b(19|20)\d{2}\b/);
+  return yearMatch ? yearMatch[0] : '';
+}
+
 function fieldBlock(label, value, options = {}) {
   const { fullWidth = false } = options;
   return `
@@ -31,7 +55,7 @@ function fieldBlock(label, value, options = {}) {
       <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5b6b8a;margin-bottom:4px;">
         ${escapeHtml(label)}
       </div>
-      <div style="background:#f7f9fc;border:1px solid #dbe3ef;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;color:#1a2332;min-height:34px;line-height:1.35;">
+      <div style="background:#f7f9fc;border:1px solid #dbe3ef;border-radius:8px;padding:4px 5px;font-size:12px;font-weight:600;color:#1a2332;min-height:20px;line-height:1.35;">
         ${escapeHtml(value)}
       </div>
     </div>
@@ -50,6 +74,9 @@ function skillCard(title, accent) {
 }
 
 function buildAssessmentFormHtml(data) {
+  const joinedDateValue = resolveJoinedDateValue(data);
+  const admissionYear = getAdmissionYear(joinedDateValue);
+  const sessionLabel = admissionYear ? `${admissionYear}-${Number(admissionYear) + 3}` : '';
   const courseTitle = `${escapeHtml(data.course || 'BCA')} Programme`;
   const photoSource = data.photoDataUrl || data.photoUrl || '';
   const photoHtml = photoSource
@@ -58,7 +85,7 @@ function buildAssessmentFormHtml(data) {
 
   const cmToPx = 37.8;
   const columnWidths = [3 * cmToPx, 4 * cmToPx, 6 * cmToPx, 6 * cmToPx];
-  const rowHeight = 18;
+  const rowHeight = 24;
   const tableWidth = columnWidths.reduce((total, width) => total + width, 0);
 
   const sessionalCellHtml = (height, isHeader = false) => `
@@ -119,25 +146,19 @@ function buildAssessmentFormHtml(data) {
       overflow:hidden;
       border-radius:12px;
       border:1px solid #dbe3ef;
-      margin:0 auto;
+      margin:0px;
     ">
       <div style="background:linear-gradient(135deg,#1e3a5f 0%,#2c5282 55%,#1e3a5f 100%);padding:16px 18px 14px;color:#fff;position:relative;">
         <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#c9a227,#f0d78c,#c9a227);"></div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
           <div>
-            <div style="font-size:8px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;opacity:0.82;margin-bottom:6px;">
-              BBS Institute of Professional Studies
-            </div>
             <h1 style="font-size:18px;font-weight:800;margin:0 0 4px 0;letter-spacing:0.02em;line-height:1.15;">
-              Student Assessment Form
+              BBS Institute of Professional Studies
             </h1>
-            <div style="font-size:11px;font-weight:600;opacity:0.95;">${courseTitle} · Session 2026–2029</div>
+            <div style="font-size:11px;font-weight:600;opacity:0.95;">${courseTitle}${sessionLabel ? ` · Session ${escapeHtml(sessionLabel)}` : ''}</div>
           </div>
           <div style="text-align:right;min-width:110px;">
-            <div style="display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);font-size:8px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">
-              First Assessment
-            </div>
-            <div style="margin-top:6px;font-size:9px;opacity:0.88;">Admission Year <strong style="color:#f0d78c;">2026</strong></div>
+            <div style="margin-top:10px;font-size:15px;opacity:0.88;">Admission Year <strong style="color:#f0d78c;">${escapeHtml(admissionYear)}</strong></div>
           </div>
         </div>
       </div>
@@ -233,17 +254,6 @@ function buildAssessmentFormHtml(data) {
           </div>
         </div>
       </div>
-
-      <div style="margin-top:2px;padding:10px 16px 12px;border-top:1px solid #e8eef6;background:linear-gradient(180deg,#f8fafc 0%,#ffffff 100%);display:flex;justify-content:space-between;align-items:center;gap:8px;">
-        <div style="font-size:8px;color:#5b6b8a;line-height:1.35;">
-          <strong style="color:#1e3a5f;">BBS Institute of Professional Studies</strong><br>
-          Empowering students with quality education and professional growth.
-        </div>
-        <div style="text-align:right;font-size:8px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#94a3b8;">
-          Official Assessment Document
-        </div>
-      </div>
-    </div>
   `;
 }
 
@@ -375,6 +385,9 @@ function studentToFormData(student) {
     course: student.course || '',
     registrationId: student.id || student.registrationId || '',
     photoDataUrl: student.photoDataUrl || student.photoUrl || '',
+    joinedDate: student.joinedDate || student.joined_date || student.createdAt || student.joinedAt || student.date || student.year || student.joinedYear || '',
+    joined_date: student.joinedDate || student.joined_date || student.createdAt || student.joinedAt || student.date || student.year || student.joinedYear || '',
+    createdAt: student.createdAt || student.joinedDate || student.joined_date || student.joinedAt || student.date || student.year || student.joinedYear || ''
   };
 }
 

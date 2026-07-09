@@ -94,7 +94,9 @@ export function studentToFrontend(row) {
     bus,
     photoUrl: row.photoUrl || "",
     photoDataUrl: row.photoUrl || "",
-    createdAt: row.createdAt || null,
+    joinedDate: row.joined_date || "",
+    joined_date: row.joined_date || "",
+    createdAt: row.joined_date || "",
   };
 }
 
