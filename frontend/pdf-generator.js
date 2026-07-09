@@ -128,7 +128,7 @@ function buildAssessmentFormHtml(data) {
   const improvementBoxes = Array.from({ length: 4 }, (_, index) => `
     <div style="border:1px solid #dbe3ef;border-radius:10px;padding:4px 8px;text-align:center;background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);min-height:55px;position:relative;overflow:hidden;">
       <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#1e3a5f,#2563eb,#c9a227);"></div>
-      <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#94a3b8;margin-top:6px;">Week ${index + 1}</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#94a3b8;margin-top:6px;">Semester ${index + 1}</div>
     </div>
   `).join('');
 
@@ -143,7 +143,7 @@ function buildAssessmentFormHtml(data) {
       font-size:10px;
       line-height:1.25;
       box-sizing:border-box;
-      overflow:hidden;
+      overflow:visible;
       border-radius:12px;
       border:1px solid #dbe3ef;
       margin:0px;
@@ -276,7 +276,7 @@ async function renderAssessmentFormElement(data) {
   wrapper.style.top = '0';
   wrapper.style.width = '760px';
   wrapper.style.background = '#ffffff';
-  wrapper.style.overflow = 'hidden';
+  wrapper.style.overflow = 'visible';
   wrapper.innerHTML = buildAssessmentFormHtml(data);
   document.body.appendChild(wrapper);
 
@@ -312,11 +312,12 @@ async function captureFormCanvas(element) {
       clonedForm.style.margin = '0';
       clonedForm.style.minHeight = 'auto';
       clonedForm.style.borderRadius = '0';
+      clonedForm.style.overflow = 'visible';
     },
   });
 }
 
-function addCanvasToPdf(pdf, canvas, margin = 8) {
+function addCanvasToPdf(pdf, canvas, margin = 10) {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const availableWidth = pageWidth - margin * 2;
@@ -328,7 +329,7 @@ function addCanvasToPdf(pdf, canvas, margin = 8) {
   const scaledHeight = imgHeight * ratio;
   const imgData = canvas.toDataURL('image/png', 1.0);
 
-  pdf.addImage(imgData, 'PNG', (pageWidth - scaledWidth) / 2, (pageHeight - scaledHeight) / 2, scaledWidth, scaledHeight);
+  pdf.addImage(imgData, 'PNG', margin, margin, scaledWidth, scaledHeight);
 }
 
 async function generateAssessmentPdf(data, fileName, options = {}) {
@@ -356,7 +357,7 @@ async function generateAssessmentPdf(data, fileName, options = {}) {
       compress: true,
     });
 
-    addCanvasToPdf(pdf, canvas);
+    addCanvasToPdf(pdf, canvas, options.margin ?? 10);
     pdf.save(fileName);
   } finally {
     if (wrapper) {
