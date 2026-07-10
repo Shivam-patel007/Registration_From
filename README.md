@@ -1,154 +1,171 @@
 # BBS Institute — Student Registration Portal
 
-Cloud-powered student registration. Students submit from any device; one admin dashboard shows all registrations from a central database (Firebase).
+A modern registration portal for BBS Institute of Professional Studies.
+Students submit admission details and a photo via a public form, while admins manage registrations from a secure dashboard and generate printable assessment PDFs.
 
-## Features
+## Overview
 
-- Unlimited student registrations from anywhere
-- Photos stored in Firebase Storage (not browser memory)
-- Central admin dashboard for all submissions
-- PDF preview and download for admin
-- Secure admin login with Firebase Authentication
+This repository contains a full-stack application with:
+- A static frontend built with HTML, CSS, and JavaScript
+- A Node.js + Express backend for registration storage, admin authentication, and photo uploads
+- Supabase as the PostgreSQL database provider
+- In-browser PDF generation using `html2canvas` and `jspdf`
+
+> Note: The current application is not using Firebase. The backend relies on Supabase and a local Node server.
+
+## Key Features
+
+- Responsive student registration form
+- Photo upload with type validation and 2 MB file size limit
+- Server-side storage of student records in Supabase
+- Admin dashboard with login, list of registrations, delete support, and PDF export
+- Student assessment preview and downloadable PDF
+- Local photo serving via `/uploads/photos`
 
 ## Project Structure
 
 ```
 frontend/
-  index.html              Student registration form
-  script.js               Form submit logic
-  admin.html              Admin dashboard
-  admin.js                Admin panel logic
-  db.js                   Firebase database service
-  firebase-config.js      Your Firebase keys (you must configure)
-  firebase-config.example.js
-  pdf-generator.js        PDF template and generator
-  pdf-preview.html        Admin PDF preview
-  style.css               Shared styles
+  index.html          Student registration page
+  admin.html          Admin dashboard page
+  pdf-preview.html    Assessment PDF preview page
+  style.css           Shared styles
+  script.js           Registration form workflow
+  admin.js            Dashboard workflow and PDF actions
+  db.js               Frontend API client for backend
+  pdf-generator.js    PDF generation and assessment template
+  components.js       Reusable footer markup
 
-firebase/
-  firestore.rules         Database security rules
-  storage.rules           Photo storage security rules
+server/
+  index.js            Express server and API routes
+  package.json        Server dependencies and scripts
+  db/connection.js    Supabase client configuration
+  handlers/
+    admin.js          Admin authentication and session support
+    students.js       Registration create/read/delete handlers
+  utils/
+    auth.js           bearer token session utilities
+    http.js           response helpers and CORS support
+    upload.js         multer upload handling and photo helpers
 ```
 
-## Quick Start (Local Testing)
+## Requirements
 
-1. Complete **Firebase Setup** below first
-2. Open terminal in `frontend` folder:
-   ```bash
-   python -m http.server 8000
-   ```
-3. Open:
-   - Form: `http://localhost:8000/`
-   - Admin: `http://localhost:8000/admin.html`
+- Node.js 18+ or compatible
+- npm
+- Supabase project with a PostgreSQL database
+- Supabase `service_role` key for server access
 
----
+## Setup
 
-## Firebase Setup (Required)
+### 1. Install server dependencies
 
-### Step 1 — Create a Firebase project
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Click **Add project** → name it e.g. `bbs-registration`
-3. Disable Google Analytics (optional) → **Create project**
-
-### Step 2 — Register a web app
-
-1. In Firebase project → **Project settings** (gear icon)
-2. Under **Your apps** → click **Web** `</>`
-3. App nickname: `BBS Registration`
-4. Copy the `firebaseConfig` values
-
-### Step 3 — Configure the project
-
-1. Open `frontend/firebase-config.js`
-2. Replace `YOUR_API_KEY`, `YOUR_PROJECT_ID`, etc. with your real values
-3. Set `ADMIN_EMAIL` to the email you will use for admin login
-
-Example:
-```javascript
-const FIREBASE_CONFIG = {
-  apiKey: 'AIza...',
-  authDomain: 'bbs-registration.firebaseapp.com',
-  projectId: 'bbs-registration',
-  storageBucket: 'bbs-registration.appspot.com',
-  messagingSenderId: '123456789',
-  appId: '1:123456789:web:abcdef',
-};
-
-const ADMIN_EMAIL = 'admin@bbsips.edu.in';
+```bash
+cd server
+npm install
 ```
 
-### Step 4 — Enable Firestore Database
+### 2. Create `.env`
 
-1. Firebase Console → **Build** → **Firestore Database**
-2. Click **Create database**
-3. Choose **Start in test mode** (we will add proper rules next)
-4. Select a region close to India (e.g. `asia-south1` Mumbai)
+Create a `.env` file in the `server` folder with:
 
-### Step 5 — Enable Storage
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
 
-1. Firebase Console → **Build** → **Storage**
-2. Click **Get started**
-3. Start in test mode → choose same region as Firestore
 
-### Step 6 — Enable Authentication (Admin login)
+### 4. Create an admin account
 
-1. Firebase Console → **Build** → **Authentication**
-2. Click **Get started**
-3. **Sign-in method** → enable **Email/Password**
-4. Go to **Users** tab → **Add user**
-   - Email: same as `ADMIN_EMAIL` in `firebase-config.js`
-   - Password: choose your admin password (e.g. `AJAY@1234`)
+Insert a dashboard login user into the `admin` table:
 
-### Step 7 — Deploy security rules
+```sql
+insert into admin (email, password)
+values ('admin@example.com', 'YourSecurePassword');
+```
 
-In Firebase Console:
+> The app compares the password directly to the stored value, so use a strong password.
 
-**Firestore rules** (Firestore → Rules tab) — paste contents of `firebase/firestore.rules` → **Publish**
+## Running Locally
 
-**Storage rules** (Storage → Rules tab) — paste contents of `firebase/storage.rules` → **Publish**
+From the `server` folder:
 
-### Step 8 — Deploy online (so students can access from anywhere)
+```bash
+npm run start
+```
 
-Host the `frontend` folder on any static hosting:
+The server starts on port `5000` by default.
 
-- [Firebase Hosting](https://firebase.google.com/docs/hosting)
-- [Netlify](https://netlify.com) — drag & drop the `frontend` folder
-- [Vercel](https://vercel.com)
-- [GitHub Pages](https://pages.github.com)
+Open in your browser:
+- Student form: `http://localhost:5000/`
+- Admin dashboard: `http://localhost:5000/admin.html`
 
-After hosting, share the public URL with students. Admin uses the same site at `/admin.html`.
+## How the App Works
 
----
+### Student registration flow
 
-## How It Works
+- Student opens `index.html`
+- Fills personal, academic, and facility details
+- Uploads a passport-size photo
+- Form data and photo are sent to `POST /api/registrations`
+- Backend inserts the record into Supabase and stores the photo locally
 
-| User | What happens |
-|------|----------------|
-| **Student** | Fills form → data + photo saved to Firebase cloud |
-| **Admin** | Logs in → sees ALL students from every device |
-| **PDF** | Admin downloads assessment PDF with student photo |
+### Admin dashboard flow
 
-## Default Admin Login
+- Admin opens `admin.html`
+- Signs in using credentials stored in the `admin` table
+- Dashboard fetches registrations from `GET /api/registrations`
+- Admin can view, delete, or export records as PDF
 
-- **Email** (configured in `firebase-config.js`): `admin@bbsips.edu.in`
-- **Password**: the one you set in Firebase Authentication (Step 6)
+### PDF generation
 
-Change password from the admin dashboard after logging in.
+- `pdf-generator.js` builds a printable assessment layout
+- `html2canvas` and `jspdf` render the layout into a downloadable PDF
+- `pdf-preview.html` shows the assessment template before printing
 
 ## Important Notes
 
-- Do **not** share `firebase-config.js` publicly if it contains sensitive keys (Firebase web API keys are generally safe for client apps, but still use security rules)
-- Always deploy Firestore and Storage rules before going live
-- Remove **test mode** rules if you used them during setup
-- Free Firebase plan supports thousands of registrations for a small institute
+- Photos are stored in `server/uploads/photos`
+- Admin sessions are stored in memory using a bearer token
+- If the server restarts, admin sessions will expire and require re-login
+- The frontend uses `sessionStorage` to persist the admin token and preview data
+
+## API Endpoints
+
+- `POST /api/registrations` — create a new student registration
+- `GET /api/registrations` — list all registrations (admin only)
+- `GET /api/registrations/:id` — get one registration (admin only)
+- `DELETE /api/registrations/:id` — delete a registration (admin only)
+- `POST /api/admin/login` — sign in as admin
+- `POST /api/admin/logout` — sign out
+- `GET /api/admin/session` — validate admin session
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| "Online registration is not configured" | Fill in `firebase-config.js` with real Firebase values |
-| "Incorrect admin password" | Check user exists in Firebase Authentication with correct email |
-| "Unable to load registrations" | Deploy Firestore rules; ensure admin is signed in |
-| Photo upload fails | Deploy Storage rules; check photo is under 2 MB |
-| PDF photo missing | Republish Storage rules with `allow read: if true` for photos |
+- Server fails to start
+  - Confirm Node version and that `.env` exists with valid Supabase values
+- Data does not appear in dashboard
+  - Confirm admin login credentials are correct
+  - Check the `admin` and `student` tables in Supabase
+- Photo upload is rejected
+  - File type must be JPG, PNG, or WEBP
+  - File size must be 2 MB or smaller
+- PDF export does not work
+  - Ensure `pdf-generator.js`, `html2canvas`, and `jspdf` are loading correctly
+  - Refresh the admin dashboard and try again
+
+## Recommended Improvements
+
+- Hash admin passwords instead of storing plaintext
+- Move photo uploads to a cloud storage provider instead of local disk
+- Add pagination and search for large registration lists
+- Replace in-memory sessions with persistent session storage
+
+## Authors
+
+- Frontend: Shivam Patel
+- Backend: Aditya Patel
+
+---
+
+Enjoy building and extending the BBS student registration portal.
