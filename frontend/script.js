@@ -1,31 +1,38 @@
-const form = document.getElementById('registrationForm');
-const submitButton = document.getElementById('submitButton');
-const statusMessage = document.getElementById('status');
-const photoInput = document.getElementById('photo');
-const photoPreview = document.getElementById('photoPreview');
-const session = document.getElementById('session');
+import { footer } from "./components.js";
+
+const form = document.getElementById("registrationForm");
+const submitButton = document.getElementById("submitButton");
+const statusMessage = document.getElementById("status");
+const photoInput = document.getElementById("photo");
+const photoPreview = document.getElementById("photoPreview");
+const session = document.getElementById("session");
+const footerSection = document.getElementById("footer");
 
 session.textContent = `Academic Session ${new Date().getFullYear()} - ${new Date().getFullYear() + 3}`;
+
+footerSection.innerHTML = footer();
+
+console.log(footerSection);
 
 const MAX_PHOTO_SIZE = 2 * 1024 * 1024;
 
 function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function setStatus(message, isError = false) {
-  statusMessage.classList.toggle('is-error', isError);
-  statusMessage.classList.toggle('is-success', !isError && Boolean(message));
+  statusMessage.classList.toggle("is-error", isError);
+  statusMessage.classList.toggle("is-success", !isError && Boolean(message));
   statusMessage.textContent = message;
 }
 
 function showSuccessMessage(credentials) {
-  statusMessage.classList.remove('is-error');
-  statusMessage.classList.add('is-success');
+  statusMessage.classList.remove("is-error");
+  statusMessage.classList.add("is-success");
   statusMessage.innerHTML = `
     <strong>Registration submitted successfully.</strong><br><br>
     Registration ID: <strong>${escapeHtml(credentials.id)}</strong><br>
@@ -34,21 +41,21 @@ function showSuccessMessage(credentials) {
 }
 
 function updatePhotoPreview(file) {
-  photoPreview.innerHTML = '';
+  photoPreview.innerHTML = "";
 
   if (!file) {
-    const placeholder = document.createElement('div');
-    placeholder.className = 'photo-placeholder';
-    placeholder.textContent = 'Preview will appear here';
+    const placeholder = document.createElement("div");
+    placeholder.className = "photo-placeholder";
+    placeholder.textContent = "Preview will appear here";
     photoPreview.appendChild(placeholder);
     return;
   }
 
   const reader = new FileReader();
   reader.onload = () => {
-    const image = document.createElement('img');
+    const image = document.createElement("img");
     image.src = reader.result;
-    image.alt = 'Uploaded photo preview';
+    image.alt = "Uploaded photo preview";
     photoPreview.appendChild(image);
   };
   reader.readAsDataURL(file);
@@ -56,9 +63,22 @@ function updatePhotoPreview(file) {
 
 function getFormValues() {
   const fields = [
-    'name', 'mobile', 'fatherName', 'fatherMobile', 'state', 'pincode',
-    'district', 'landmark', 'address', 'course', 'board10', 'percentage10',
-    'board', 'percentage', 'hostel', 'bus',
+    "name",
+    "mobile",
+    "fatherName",
+    "fatherMobile",
+    "state",
+    "pincode",
+    "district",
+    "landmark",
+    "address",
+    "course",
+    "board10",
+    "percentage10",
+    "board",
+    "percentage",
+    "hostel",
+    "bus",
   ];
 
   return fields.reduce((values, id) => {
@@ -67,7 +87,7 @@ function getFormValues() {
   }, {});
 }
 
-form.addEventListener('submit', async (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!form.checkValidity()) {
@@ -76,45 +96,51 @@ form.addEventListener('submit', async (event) => {
   }
 
   if (!window.RegistrationDB?.isReady()) {
-    setStatus('Online registration is not configured yet. Please contact the institute.', true);
+    setStatus(
+      "Online registration is not configured yet. Please contact the institute.",
+      true,
+    );
     return;
   }
 
   submitButton.disabled = true;
-  setStatus('Submitting your registration...');
+  setStatus("Submitting your registration...");
 
   try {
     const photoFile = photoInput.files[0];
     if (!photoFile) {
-      throw new Error('Please upload a photo before submitting.');
+      throw new Error("Please upload a photo before submitting.");
     }
 
     const values = getFormValues();
-    const registration = await window.RegistrationDB.createRegistration(values, photoFile);
+    const registration = await window.RegistrationDB.createRegistration(
+      values,
+      photoFile,
+    );
 
     showSuccessMessage(registration);
     form.reset();
     updatePhotoPreview(null);
   } catch (error) {
     console.error(error);
-    setStatus(error.message || 'Something went wrong. Please try again.', true);
+    setStatus(error.message || "Something went wrong. Please try again.", true);
     submitButton.disabled = false;
   }
 });
 
-photoInput.addEventListener('change', () => {
+photoInput.addEventListener("change", () => {
   const file = photoInput.files[0];
 
   if (file && file.size > MAX_PHOTO_SIZE) {
-    setStatus('Photo must be 2 MB or smaller.', true);
-    photoInput.value = '';
+    setStatus("Photo must be 2 MB or smaller.", true);
+    photoInput.value = "";
     updatePhotoPreview(null);
     return;
   }
 
   updatePhotoPreview(file);
-  if (statusMessage.classList.contains('is-error')) {
-    setStatus('');
+  if (statusMessage.classList.contains("is-error")) {
+    setStatus("");
   }
 });
 
