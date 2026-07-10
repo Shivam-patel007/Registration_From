@@ -1,11 +1,16 @@
+import { footer } from "./components.js";
+
 const loginCard = document.getElementById('loginCard');
 const dashboard = document.getElementById('dashboard');
 const loginForm = document.getElementById('adminLoginForm');
 const loginStatus = document.getElementById('loginStatus');
 const logoutButton = document.getElementById('logoutButton');
 const registrationsList = document.getElementById('registrationsList');
+const footerSection = document.getElementById("footer");
 
 let cachedRegistrations = [];
+
+footerSection.innerHTML = footer();
 
 function setLoginStatus(message, isError = false) {
   if (!loginStatus) return;
