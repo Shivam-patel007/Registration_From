@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import multer from "multer";
+import { supabase } from "../db/connection.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const UPLOADS_DIR = path.join(__dirname, "../uploads/photos");
@@ -10,21 +11,12 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
-const storage = multer.diskStorage({
-  destination(_req, _file, cb) {
-    cb(null, UPLOADS_DIR);
-  },
-  filename(_req, file, cb) {
-    const extension = path.extname(file.originalname).toLowerCase() || ".jpg";
-    const safeExtension = [".jpg", ".jpeg", ".png", ".webp"].includes(extension)
-      ? extension
-      : ".jpg";
-    cb(null, `temp-${Date.now()}-${Math.round(Math.random() * 1e9)}${safeExtension}`);
-  },
-});
+const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || process.env.SUPABASE_BUCKET || "Images";
+
+const storage = multer.memoryStorage();
 
 function fileFilter(_req, file, cb) {
-  const allowed = ["image/jpeg", "image/png", "image/webp"];
+  const allowed = ["image/jpeg", "image/png", "image/jpg"];
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
     return;
@@ -35,7 +27,7 @@ function fileFilter(_req, file, cb) {
 export const uploadPhoto = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 512 },
 });
 
 export function buildPhotoUrl(filename) {
@@ -51,18 +43,67 @@ export function getPhotoFilePath(photoUrl) {
   return path.join(UPLOADS_DIR, filename);
 }
 
-export function renamePhotoFile(tempFilename, studentId) {
-  const tempPath = path.join(UPLOADS_DIR, tempFilename);
-  const extension = path.extname(tempFilename) || ".jpg";
-  const finalFilename = `student-${studentId}${extension}`;
-  const finalPath = path.join(UPLOADS_DIR, finalFilename);
+function getStorageObjectName(photoUrl) {
+  if (!photoUrl || typeof photoUrl !== "string") return null;
 
-  fs.renameSync(tempPath, finalPath);
-  return buildPhotoUrl(finalFilename);
+  try {
+    const parsedUrl = new URL(photoUrl);
+    const segments = parsedUrl.pathname.split("/").filter(Boolean);
+    const objectIndex = segments.indexOf("object");
+
+    if (objectIndex === -1) {
+      return null;
+    }
+
+    const afterObject = segments.slice(objectIndex + 1);
+    if (afterObject[0] === "public" || afterObject[0] === "authenticated") {
+      return afterObject.slice(2).join("/");
+    }
+
+    return afterObject.slice(1).join("/");
+  } catch {
+    return null;
+  }
 }
 
-export function deletePhotoFile(photoUrl) {
-  const filePath = getPhotoFilePath(photoUrl);
-  if (!filePath || !fs.existsSync(filePath)) return;
-  fs.unlinkSync(filePath);
+export async function renamePhotoFile(photoFile, studentId) {
+  if (!photoFile?.buffer) {
+    throw new Error("Photo file is required.");
+  }
+
+  const extension = path.extname(photoFile.originalname || "").toLowerCase() || ".jpg";
+  const safeExtension = [".jpg", ".jpeg", ".png", ".webp"].includes(extension)
+    ? extension
+    : ".jpg";
+  const objectName = `student-${studentId}-${Date.now()}${safeExtension}`;
+
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(objectName, photoFile.buffer, {
+    contentType: photoFile.mimetype || "image/jpeg",
+    upsert: false,
+  });
+
+  if (error) {
+    throw new Error(error.message || "Unable to upload student photo to storage.");
+  }
+
+  const { data: publicUrlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(objectName);
+  return publicUrlData?.publicUrl || "";
+}
+
+export async function deletePhotoFile(photoUrl) {
+  if (!photoUrl) return;
+
+  const localFilePath = getPhotoFilePath(photoUrl);
+  if (localFilePath && fs.existsSync(localFilePath)) {
+    fs.unlinkSync(localFilePath);
+    return;
+  }
+
+  const objectName = getStorageObjectName(photoUrl);
+  if (!objectName) return;
+
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([objectName]);
+  if (error && !String(error.message || "").toLowerCase().includes("not found")) {
+    console.warn("Unable to delete photo from storage:", error.message);
+  }
 }

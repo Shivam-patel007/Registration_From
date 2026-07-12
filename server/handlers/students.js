@@ -32,12 +32,14 @@ export async function createRegistration(body, photoFile) {
     throw new Error(error.message || "Unable to save registration.");
   }
 
+  let uploadedPhotoUrl = "";
+
   try {
-    const photoUrl = renamePhotoFile(photoFile.filename, data.id);
+    uploadedPhotoUrl = await renamePhotoFile(photoFile, data.id);
 
     const { data: updated, error: updateError } = await supabase
       .from("student")
-      .update({ photoUrl })
+      .update({ photoUrl: uploadedPhotoUrl })
       .eq("id", data.id)
       .select()
       .single();
@@ -51,7 +53,9 @@ export async function createRegistration(body, photoFile) {
       password,
     };
   } catch (photoError) {
-    deletePhotoFile(`/uploads/photos/${photoFile.filename}`);
+    if (uploadedPhotoUrl) {
+      await deletePhotoFile(uploadedPhotoUrl);
+    }
     await supabase.from("student").delete().eq("id", data.id);
     throw photoError;
   }
@@ -83,7 +87,9 @@ export async function deleteRegistration(registrationId) {
     throw new Error("Registration not found.");
   }
 
-  deletePhotoFile(student.photoUrl);
+  if (student.photoUrl) {
+    await deletePhotoFile(student.photoUrl);
+  }
 
   const { error } = await supabase.from("student").delete().eq("id", student.dbId);
   if (error) {
