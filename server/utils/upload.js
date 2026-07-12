@@ -1,15 +1,6 @@
-import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import multer from "multer";
 import { supabase } from "../db/connection.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const UPLOADS_DIR = path.join(__dirname, "../uploads/photos");
-
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
 
 const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || process.env.SUPABASE_BUCKET || "Images";
 
@@ -21,27 +12,14 @@ function fileFilter(_req, file, cb) {
     cb(null, true);
     return;
   }
-  cb(new Error("Only JPG, PNG, or WEBP photos are allowed."));
+  cb(new Error("Only JPG, PNG or JPEG photos are allowed."));
 }
 
 export const uploadPhoto = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 512 },
+  limits: { fileSize: 500 * 1024 },
 });
-
-export function buildPhotoUrl(filename) {
-  return `/uploads/photos/${filename}`;
-}
-
-export function getPhotoFilePath(photoUrl) {
-  if (!photoUrl || !photoUrl.startsWith("/uploads/photos/")) {
-    return null;
-  }
-
-  const filename = path.basename(photoUrl);
-  return path.join(UPLOADS_DIR, filename);
-}
 
 function getStorageObjectName(photoUrl) {
   if (!photoUrl || typeof photoUrl !== "string") return null;
@@ -72,7 +50,7 @@ export async function renamePhotoFile(photoFile, studentId) {
   }
 
   const extension = path.extname(photoFile.originalname || "").toLowerCase() || ".jpg";
-  const safeExtension = [".jpg", ".jpeg", ".png", ".webp"].includes(extension)
+  const safeExtension = [".jpg", ".jpeg", ".png"].includes(extension)
     ? extension
     : ".jpg";
   const objectName = `student-${studentId}-${Date.now()}${safeExtension}`;
@@ -92,12 +70,6 @@ export async function renamePhotoFile(photoFile, studentId) {
 
 export async function deletePhotoFile(photoUrl) {
   if (!photoUrl) return;
-
-  const localFilePath = getPhotoFilePath(photoUrl);
-  if (localFilePath && fs.existsSync(localFilePath)) {
-    fs.unlinkSync(localFilePath);
-    return;
-  }
 
   const objectName = getStorageObjectName(photoUrl);
   if (!objectName) return;
