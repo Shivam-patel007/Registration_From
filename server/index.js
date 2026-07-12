@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sendJson, setCorsHeaders } from "./utils/http.js";
 import { requireAdmin } from "./utils/auth.js";
-import { uploadPhoto, UPLOADS_DIR } from "./utils/upload.js";
+import { uploadPhoto } from "./utils/upload.js";
 import {
   createRegistration,
   deleteRegistration,
@@ -32,7 +32,6 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-app.use("/uploads/photos", express.static(UPLOADS_DIR));
 app.use(express.static(FRONTEND_DIR));
 
 app.post(
@@ -51,15 +50,6 @@ app.post(
       const registration = await createRegistration(req.body, req.file);
       sendJson(res, 201, registration);
     } catch (error) {
-      if (req.file?.filename) {
-        const tempPath = path.join(UPLOADS_DIR, req.file.filename);
-        try {
-          const fs = await import("node:fs");
-          if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
-        } catch {
-          // ignore cleanup errors
-        }
-      }
       sendJson(res, 500, { error: error.message || "Unable to save registration." });
     }
   }

@@ -39,9 +39,7 @@ async function renderRegistrations() {
   cachedRegistrations.forEach((student) => {
     const card = document.createElement('article');
     card.className = 'registration-card';
-    const dateStr = student.createdAt
-      ? new Date(student.createdAt).toLocaleString()
-      : '—';
+    const dateStr = student?.createdAt || "-"
 
     card.innerHTML = `
       <h3>${student.name || 'Unknown'}</h3>

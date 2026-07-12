@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Registration | BBS Institute</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <div class="page-shell">
     <header class="form-header">
@@ -25,7 +27,8 @@
           </label>
           <label>
             Mobile Number
-            <input id="mobile" name="mobile" type="tel" pattern="\d{10}" required maxlength="10" placeholder="10-digit number" autocomplete="tel" />
+            <input id="mobile" name="mobile" type="tel" pattern="\d{10}" required maxlength="10"
+              placeholder="10-digit number" autocomplete="tel" />
           </label>
         </div>
 
@@ -36,7 +39,8 @@
           </label>
           <label>
             Father's Mobile
-            <input id="fatherMobile" name="fatherMobile" type="tel" pattern="\d{10}" required maxlength="10" placeholder="10-digit number" />
+            <input id="fatherMobile" name="fatherMobile" type="tel" pattern="\d{10}" required maxlength="10"
+              placeholder="10-digit number" />
           </label>
         </div>
 
@@ -54,7 +58,8 @@
         <div class="grid-2">
           <label>
             Pincode
-            <input id="pincode" name="pincode" type="text" required maxlength="6" pattern="\d{6}" placeholder="6 digits" />
+            <input id="pincode" name="pincode" type="text" required maxlength="6" pattern="\d{6}"
+              placeholder="6 digits" />
           </label>
           <label>
             Landmark
@@ -96,7 +101,8 @@
         <div class="grid-2">
           <label>
             10th Percentage
-            <input id="percentage10" name="percentage10" type="number" min="0" max="100" step="0.01" required placeholder="0 – 100" />
+            <input id="percentage10" name="percentage10" type="number" min="0" max="100" step="0.01" required
+              placeholder="0 – 100" />
           </label>
           <label>
             12th Board
@@ -112,7 +118,8 @@
 
         <label>
           12th Percentage
-          <input id="percentage" name="percentage" type="number" min="0" max="100" step="0.01" required placeholder="0 - 100" />
+          <input id="percentage" name="percentage" type="number" min="0" max="100" step="0.01" required
+            placeholder="0 - 100" />
         </label>
       </section>
 
@@ -144,7 +151,7 @@
           <label class="photo-label">
             Upload Passport-size Photo
             <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required />
-            <span class="note">JPG or PNG only. Maximum size 2 MB.</span>
+            <span class="note">JPG, PNG and JPG only. Maximum size 500 Kb.</span>
           </label>
           <div class="photo-preview" id="photoPreview" aria-live="polite">
             <div class="photo-placeholder">Preview will appear here</div>
@@ -161,11 +168,12 @@
   </div>
 
   <footer class="site-footer" id="footer">
-    
+
   </footer>
 
 
   <script src="db.js"></script>
   <script type="module" src="script.js"></script>
 </body>
+
 </html>
