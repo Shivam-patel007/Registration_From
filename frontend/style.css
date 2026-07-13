@@ -33,7 +33,7 @@ body {
 
 .page-shell {
   max-width: 920px;
-  margin: 0 auto 250px auto;
+  margin: 0 auto 40px auto;
   padding: 24px;
 }
 
@@ -250,8 +250,6 @@ button:disabled {
   margin: 40px 0 0 ;
   background: #020202;
   color: #f6f7fb;
-  position:fixed;
-  bottom: 0;
 }
 
 .footer-grid {
@@ -383,6 +381,7 @@ button:disabled {
 .registration-list {
   display: grid;
   gap: 14px;
+  min-height: 135px;
 }
 
 .registration-card {
